@@ -3,6 +3,7 @@
 
 @import "tailwindcss";
 
+/* These are theme variables NOT CSS */
 @theme {
   --color-primary: #030014;
 
@@ -27,6 +28,10 @@
     background: #030014;
   }
 
+  /* 
+  leading-tight = line-height
+  tracking-[-1%] = letter-spacing
+  */
   h1 {
     @apply mx-auto max-w-4xl text-center text-5xl font-bold leading-tight tracking-[-1%] text-white sm:text-[64px] sm:leading-[76px];
   }
@@ -43,6 +48,7 @@
     @apply sm:mt-10 mt-5;
   }
 
+  /* Object fit property specifies how an image is fit into its container, because of its aspect ratio it may be placed awkwardly */
   header img {
     @apply w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md;
   }
@@ -108,6 +114,7 @@
       @apply rounded-lg h-auto w-full;
     }
 
+    /* line-clamp-1: truncates text after 1 line and adds ... */
     & h3 {
       @apply text-white font-bold text-base line-clamp-1;
     }

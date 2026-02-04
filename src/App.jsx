@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Search from "./components/Search";
 import LoadingSpinner from "./components/LoadingSpinner";
+import MovieCard from "./components/MovieCard";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -14,30 +15,29 @@ const API_OPTIONS = {
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchMovies = async () => {
+  // A function to fetch movies
+  const fetchMovies = async (query = "") => {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      // Browsers does not allow URLs to contain certain characters directly,  If the characters are not encoded the browser may break the URL, fail our request or the server may misinterpret it.
+      // encodeURIComponent(): Function in simple terms, converts some query characters to the url format the browser allws i.e: (space) to 20%, "" to '' and other Non-ASCII characters and emoji
+      const endpoint = query
+        ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+        : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
 
+      // The fetch function does not throw an error if the promise is rejected, It only throws an error if our request has been failed to sent, thats why we manually throw an error
       const response = await fetch(endpoint, API_OPTIONS);
-
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
       }
 
       const data = await response.json();
-
-      if (data.response === "False") {
-        setErrorMessage(data.error || "Failed to fetch movies");
-        setMovieList([]);
-        return;
-      }
 
       setMovieList(data.results || []);
       console.log(data);
@@ -50,8 +50,9 @@ function App() {
   };
 
   useEffect(() => {
-    fetchMovies();
-  }, []);
+    fetchMovies(searchTerm);
+  }, [searchTerm]);
+
   return (
     <main>
       <div className="pattern" />
@@ -77,9 +78,7 @@ function App() {
           ) : (
             <ul>
               {movieList.map((movie) => (
-                <p key={movie.id} className="text-white">
-                  {movie.title}
-                </p>
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </ul>
           )}

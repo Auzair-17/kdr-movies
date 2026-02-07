@@ -3,7 +3,7 @@ import { useDebounce } from "react-use";
 import Search from "./components/Search";
 import LoadingSpinner from "./components/LoadingSpinner";
 import MovieCard from "./components/MovieCard";
-import { updateSearchCount } from "./appwrite";
+import { getTrendingMovies, updateSearchCount } from "./appwrite";
 
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -20,6 +20,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [movieList, setMovieList] = useState([]);
+  const [trendingMovies, setTrendingMovies] = useState([]);
   const [debouncedSearchedTerm, setDebouncedSearchedTerm] = useState("");
 
   // useDebounce hooks is used to prevent too many API requests by waiting for the user to stop typing for 500ms
@@ -48,7 +49,9 @@ function App() {
       setMovieList(data.results || []);
       console.log(data);
 
-      updateSearchCount();
+      if (query && data.results.length > 0) {
+        updateSearchCount(searchTerm, data.results[0]);
+      }
     } catch (err) {
       console.error(`Error fetching movies: ${err}`);
       setErrorMessage("Error fetching movies. Please try again later.");
@@ -57,9 +60,22 @@ function App() {
     }
   };
 
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+      setTrendingMovies(movies);
+    } catch (err) {
+      console.error(`Error fetching trending movies ${err}`);
+    }
+  };
+
   useEffect(() => {
     fetchMovies(debouncedSearchedTerm);
   }, [debouncedSearchedTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
 
   return (
     <main>
@@ -76,8 +92,23 @@ function App() {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className="all-movies">
-          <h2 className="text-white mt-10">All Movies</h2>
+          <h2>All Movies</h2>
 
           {isLoading ? (
             <LoadingSpinner />

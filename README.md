@@ -64,7 +64,7 @@ npm install
 npm run dev
 ```
 
-## Authur
+## Author
 
 **Auzair**
 
